@@ -195,6 +195,7 @@ static struct dma_map_ops xen_swiotlb_dma_ops = {
 	.sync_sg_for_device = xen_swiotlb_sync_sg_for_device,
 	.map_sg = xen_swiotlb_map_sg_attrs,
 	.unmap_sg = xen_swiotlb_unmap_sg_attrs,
+	.mmap = xen_swiotlb_dma_mmap,
 	.map_page = xen_swiotlb_map_page,
 	.unmap_page = xen_swiotlb_unmap_page,
 	.dma_supported = xen_swiotlb_dma_supported,

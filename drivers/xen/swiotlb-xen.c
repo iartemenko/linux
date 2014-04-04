@@ -425,6 +425,47 @@ dma_addr_t xen_swiotlb_map_page(struct device *dev, struct page *page,
 EXPORT_SYMBOL_GPL(xen_swiotlb_map_page);
 
 /*
+ * Create userspace mapping for the DMA-coherent memory.
+ */
+int xen_swiotlb_dma_mmap(struct device *dev, struct vm_area_struct *vma,
+			 void *cpu_addr, dma_addr_t dma_addr, size_t size,
+			 struct dma_attrs *attrs)
+{
+	int ret = -ENXIO;
+	unsigned long nr_vma_pages = (vma->vm_end - vma->vm_start) >> PAGE_SHIFT;
+	unsigned long nr_pages = PAGE_ALIGN(size) >> PAGE_SHIFT;
+	unsigned long pfn = PFN_DOWN(xen_bus_to_phys(dma_addr));
+	unsigned long off = vma->vm_pgoff;
+	pgprot_t prot = vma->vm_page_prot;
+
+#ifndef CONFIG_ARM64
+	prot = dma_get_attr(DMA_ATTR_WRITE_COMBINE, attrs) ?
+			    pgprot_writecombine(prot) :
+			    pgprot_dmacoherent(prot);
+#else
+prot = (!is_device_dma_coherent(dev) || 
+			dma_get_attr(DMA_ATTR_WRITE_COMBINE, attrs)) ?
+			pgprot_writecombine(prot) :
+			prot;
+#endif
+
+	vma->vm_page_prot = prot;
+
+	if (dma_mmap_from_coherent(dev, vma, cpu_addr, size, &ret))
+		return ret;
+
+	if (off < nr_pages && nr_vma_pages <= (nr_pages - off)) {
+		ret = remap_pfn_range(vma, vma->vm_start,
+					pfn + off,
+					vma->vm_end - vma->vm_start,
+					vma->vm_page_prot);
+	}
+
+	return ret;
+}
+EXPORT_SYMBOL_GPL(xen_swiotlb_dma_mmap);
+
+/*
  * Unmap a single streaming mode DMA translation.  The dma_addr and size must
  * match what was provided for in a previous xen_swiotlb_map_page call.  All
  * other usages are undefined.
