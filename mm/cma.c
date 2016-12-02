@@ -246,7 +246,7 @@ int __init cma_declare_contiguous(phys_addr_t base,
 #else
 	highmem_start = __pa(high_memory);
 #endif
-	pr_debug("%s(size %pa, base %pa, limit %pa alignment %pa)\n",
+	pr_err("%s(size %pa, base %pa, limit %pa alignment %pa)\n",
 		__func__, &size, &base, &limit, &alignment);
 
 	if (cma_area_count == ARRAY_SIZE(cma_areas)) {

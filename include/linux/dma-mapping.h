@@ -327,6 +327,7 @@ dma_mmap_attrs(struct device *dev, struct vm_area_struct *vma, void *cpu_addr,
 	BUG_ON(!ops);
 	if (ops->mmap)
 		return ops->mmap(dev, vma, cpu_addr, dma_addr, size, attrs);
+	printk("no ops->mmap \n");
 	return dma_common_mmap(dev, vma, cpu_addr, dma_addr, size);
 }
 
