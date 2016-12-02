@@ -114,6 +114,7 @@ struct drm_gem_cma_object *drm_gem_cma_create(struct drm_device *drm,
 
 	cma_obj->vaddr = dma_alloc_wc(cma_obj->dev, size, &cma_obj->paddr,
 				      GFP_KERNEL | __GFP_NOWARN);
+	DRM_DEBUG("cma_obj->paddr = 0x%016lx ->vaddr = 0x%016lx\n", cma_obj->paddr, cma_obj->vaddr);
 	if (!cma_obj->vaddr) {
 		dev_err(drm->dev, "failed to allocate buffer with size %zu\n",
 			size);
@@ -301,7 +302,7 @@ int drm_gem_cma_dumb_map_offset(struct drm_file *file_priv,
 	}
 
 	*offset = drm_vma_node_offset_addr(&gem_obj->vma_node);
-
+	DRM_DEBUG( "offset = 0x%016lx\n", *offset);
 	drm_gem_object_unreference_unlocked(gem_obj);
 
 	return 0;

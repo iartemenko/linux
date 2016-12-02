@@ -533,6 +533,8 @@ asmlinkage void __exception do_mem_abort(unsigned long addr, unsigned int esr,
 
 	pr_alert("Unhandled fault: %s (0x%08x) at 0x%016lx\n",
 		 inf->name, esr, addr);
+	__show_regs(regs);
+	WARN_ON(1);
 
 	info.si_signo = inf->sig;
 	info.si_errno = 0;
