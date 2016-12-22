@@ -33,7 +33,7 @@
 
 /dts-v1/;
 #include "r8a7795.dtsi"
-#include <dt-bindings/gpio/gpio.h>-
+#include <dt-bindings/gpio/gpio.h>
 
 / {
 	model = "Renesas Salvator-X board based on r8a7795";
