@@ -21,6 +21,7 @@ static inline void *xen_alloc_coherent_pages(struct device *hwdev, size_t size,
 		dma_addr_t *dma_handle, gfp_t flags,
 		struct dma_attrs *attrs)
 {
+	WARN( (hwdev == NULL), "\t\t\t HWDEV is NULL\n");
 	return __generic_dma_ops(hwdev)->alloc(hwdev, size, dma_handle, flags, attrs);
 }
 
@@ -28,6 +29,7 @@ static inline void xen_free_coherent_pages(struct device *hwdev, size_t size,
 		void *cpu_addr, dma_addr_t dma_handle,
 		struct dma_attrs *attrs)
 {
+	WARN( (hwdev == NULL), "\t\t\t HWDEV is NULL\n");
 	__generic_dma_ops(hwdev)->free(hwdev, size, cpu_addr, dma_handle, attrs);
 }
 
@@ -51,10 +53,13 @@ static inline void xen_dma_map_page(struct device *hwdev, struct page *page,
 	 * call the native dma_ops function, otherwise we call the xen
 	 * specific function.
 	 */
+	WARN( (hwdev == NULL), "\t\t\t HWDEV is NULL\n");
 	if (local)
 		__generic_dma_ops(hwdev)->map_page(hwdev, page, offset, size, dir, attrs);
-	else
+	else {
+		printk("\t\t%s:xen_dma_map_page: page with page_pfn=%08Xl, dev_pfn=%08Xl is not local\n",__FUNCTION__, page_pfn, dev_pfn);
 		__xen_dma_map_page(hwdev, page, dev_addr, offset, size, dir, attrs);
+	}
 }
 
 static inline void xen_dma_unmap_page(struct device *hwdev, dma_addr_t handle,
@@ -70,33 +75,53 @@ static inline void xen_dma_unmap_page(struct device *hwdev, dma_addr_t handle,
 	 * safely call the native dma_ops function, otherwise we call the xen
 	 * specific function.
 	 */
+	WARN( (hwdev == NULL), "\t\t\t HWDEV is NULL\n");
 	if (pfn_valid(pfn)) {
 		if (__generic_dma_ops(hwdev)->unmap_page)
 			__generic_dma_ops(hwdev)->unmap_page(hwdev, handle, size, dir, attrs);
-	} else
+		else {
+			printk("\t\t%s:xen_dma_sync_single_for_cpu: %s lacks of generic_dma_ops", __FUNCTION__, hwdev->driver->name);
+		}
+	} else {
+		printk("\t\t%s:xen_dma_unmap_page: %08Xl is not a valid pfn\n",__FUNCTION__, pfn);
 		__xen_dma_unmap_page(hwdev, handle, size, dir, attrs);
+	}
 }
 
 static inline void xen_dma_sync_single_for_cpu(struct device *hwdev,
 		dma_addr_t handle, size_t size, enum dma_data_direction dir)
 {
 	unsigned long pfn = PFN_DOWN(handle);
+
+	WARN( (hwdev == NULL), "\t\t\t HWDEV is NULL\n");
 	if (pfn_valid(pfn)) {
 		if (__generic_dma_ops(hwdev)->sync_single_for_cpu)
 			__generic_dma_ops(hwdev)->sync_single_for_cpu(hwdev, handle, size, dir);
-	} else
+		else {
+			printk("\t\t%s:xen_dma_sync_single_for_cpu: %s lacks of generic_dma_ops", __FUNCTION__, hwdev->driver->name);
+		}
+	} else {
+		printk("\t\t%s:xen_dma_sync_single_for_cpu: %08Xl is not a valid pfn\n",__FUNCTION__, pfn);
 		__xen_dma_sync_single_for_cpu(hwdev, handle, size, dir);
+	}
 }
 
 static inline void xen_dma_sync_single_for_device(struct device *hwdev,
 		dma_addr_t handle, size_t size, enum dma_data_direction dir)
 {
 	unsigned long pfn = PFN_DOWN(handle);
+
+	WARN( (hwdev == NULL), "\t\t\t HWDEV is NULL\n");
 	if (pfn_valid(pfn)) {
 		if (__generic_dma_ops(hwdev)->sync_single_for_device)
 			__generic_dma_ops(hwdev)->sync_single_for_device(hwdev, handle, size, dir);
-	} else
+		else {
+			printk("\t\t%s:xen_dma_sync_single_for_cpu: %s lacks of generic_dma_ops", __FUNCTION__, hwdev->driver->name);
+		}
+	} else {
+		printk("\t\t%s:xen_dma_sync_single_for_device: %08Xl is not a valid pfn\n",__FUNCTION__, pfn);
 		__xen_dma_sync_single_for_device(hwdev, handle, size, dir);
+	}
 }
 
 #endif /* _ASM_ARM_XEN_PAGE_COHERENT_H */

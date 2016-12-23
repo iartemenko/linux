@@ -561,6 +561,8 @@ xen_swiotlb_map_sg_attrs(struct device *hwdev, struct scatterlist *sgl,
 	for_each_sg(sgl, sg, nelems, i) {
 		phys_addr_t paddr = sg_phys(sg);
 		dma_addr_t dev_addr = xen_phys_to_bus(paddr);
+		WARN(((phys_addr_t)paddr < 0x50000000), "paddr = 0x%016llX, dma_address = 0x%016llX\n", paddr, sg->dma_address);
+		WARN(((phys_addr_t)dev_addr < 0x50000000), "dev_addr = 0x%016llX\n", dev_addr);
 
 		if (swiotlb_force ||
 		    xen_arch_need_swiotlb(hwdev, paddr, dev_addr) ||
