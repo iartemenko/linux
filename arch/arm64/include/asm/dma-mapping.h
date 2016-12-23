@@ -31,6 +31,9 @@ static inline struct dma_map_ops *__generic_dma_ops(struct device *dev)
 {
 	if (dev && dev->archdata.dma_ops)
 		return dev->archdata.dma_ops;
+	else
+		WARN(1, "\t\t\tdevice <%s> has no dma_ops\n", (dev != NULL) ? dev->init_name : "NULL");
+//		WARN(1, "\t\t\tdevice dev->driver->name = %s, has no dma_ops\n", (dev->driver->name != NULL) ? "unknown" : dev->driver->name);
 
 	/*
 	 * We expect no ISA devices, and all other DMA masters are expected to
@@ -66,11 +69,13 @@ static inline bool is_device_dma_coherent(struct device *dev)
 
 static inline dma_addr_t phys_to_dma(struct device *dev, phys_addr_t paddr)
 {
+	WARN(((phys_addr_t)paddr < 0x50000000), "paddr = 0x%016llX\n", paddr);
 	return (dma_addr_t)paddr;
 }
 
 static inline phys_addr_t dma_to_phys(struct device *dev, dma_addr_t dev_addr)
 {
+	WARN(((phys_addr_t)dev_addr < 0x50000000), "dev_addr = 0x%016llX\n", dev_addr);
 	return (phys_addr_t)dev_addr;
 }
 
