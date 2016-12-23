@@ -437,6 +437,17 @@ int xen_swiotlb_dma_mmap(struct device *dev, struct vm_area_struct *vma,
 }
 EXPORT_SYMBOL_GPL(xen_swiotlb_dma_mmap);
 
+int xen_swiotlb_get_sgtable(struct device *dev, struct sg_table *sgt,
+				 void *cpu_addr, dma_addr_t handle, size_t size,
+				 struct dma_attrs *attrs)
+{
+	if (__generic_dma_ops(dev)->get_sgtable)
+		return __generic_dma_ops(dev)->get_sgtable(dev, sgt, cpu_addr, handle,
+								 size, attrs);
+	return -ENXIO;
+}
+EXPORT_SYMBOL_GPL(xen_swiotlb_get_sgtable);
+
 /*
  * Unmap a single streaming mode DMA translation.  The dma_addr and size must
  * match what was provided for in a previous xen_swiotlb_map_page call.  All
