@@ -216,6 +216,11 @@ static int sh_mobile_sdhi_clk_enable(struct tmio_mmc_host *host)
 	 */
 	mmc->f_min = max(clk_round_rate(priv->clk, 1) / 512, 1L);
 
+	if(IS_ERR(priv->clk) && xen_initial_domain()) {
+		mmc->f_max = 199999992;
+		mmc->f_min = 24414;
+	}
+
 	/* enable 16bit data access on SDBUF as default */
 	sh_mobile_sdhi_sdbuf_width(host, 16);
 
@@ -712,7 +717,7 @@ static int sh_mobile_sdhi_probe(struct platform_device *pdev)
 	dma_priv = &priv->dma_priv;
 
 	priv->clk = devm_clk_get(&pdev->dev, NULL);
-	if (IS_ERR(priv->clk)) {
+	if (IS_ERR(priv->clk) && !xen_initial_domain()) {
 		ret = PTR_ERR(priv->clk);
 		dev_err(&pdev->dev, "cannot get clock: %d\n", ret);
 		goto eprobe;

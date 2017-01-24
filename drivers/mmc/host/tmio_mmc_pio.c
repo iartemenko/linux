@@ -54,6 +54,9 @@
 #include <linux/dma-mapping.h>
 #endif
 
+#include <linux/clk.h>
+#include <xen/xen.h>
+
 #include "tmio_mmc.h"
 
 static int tmio_mmc_execute_tuning(struct mmc_host *mmc, u32 opcode);
@@ -207,6 +210,12 @@ static void tmio_mmc_set_clock(struct tmio_mmc_host *host,
 		return;
 	}
 
+	/* Having no clocks specified in initial domain points us to the need
+	   of getting SD run on clocks set by u-boot */
+	if (xen_initial_domain() && 
+	    IS_ERR(devm_clk_get(&host->pdev->dev, NULL)))
+		goto exit;
+
 	if (host->clk_update)
 		clock = host->clk_update(host, new_clock) / 512;
 	else
@@ -230,6 +239,8 @@ static void tmio_mmc_set_clock(struct tmio_mmc_host *host,
 	sd_ctrl_write16(host, CTL_SD_CARD_CLK_CTL, ~CLK_CTL_SCLKEN &
 			sd_ctrl_read16(host, CTL_SD_CARD_CLK_CTL));
 	sd_ctrl_write16(host, CTL_SD_CARD_CLK_CTL, clk & CLK_CTL_DIV_MASK);
+
+exit:
 	if (!(host->pdata->flags & TMIO_MMC_MIN_RCAR2))
 		msleep(10);
 
