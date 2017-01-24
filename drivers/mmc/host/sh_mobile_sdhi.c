@@ -34,6 +34,7 @@
 #include <linux/pinctrl/consumer.h>
 #include <linux/pinctrl/pinctrl-state.h>
 #include <linux/regulator/consumer.h>
+#include <xen/xen.h>
 
 #include "tmio_mmc.h"
 
@@ -801,8 +802,11 @@ static int sh_mobile_sdhi_probe(struct platform_device *pdev)
 	host->card_busy		= sh_mobile_sdhi_card_busy;
 	host->multi_io_quirk	= sh_mobile_sdhi_multi_io_quirk;
 	host->set_clk_div	= sh_mobile_sdhi_set_clk_div;
-	host->start_signal_voltage_switch =
+
+	if(!xen_initial_domain())
+		host->start_signal_voltage_switch =
 			sh_mobile_sdhi_start_signal_voltage_switch;
+
 	host->inquiry_tuning = sh_mobile_sdhi_inquiry_tuning;
 	host->init_tuning = sh_mobile_sdhi_init_tuning;
 	host->prepare_tuning = sh_mobile_sdhi_prepare_tuning;
