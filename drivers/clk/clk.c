@@ -274,7 +274,7 @@ late_initcall_sync(clk_disable_unused);
 
 const char *__clk_get_name(const struct clk *clk)
 {
-	return !clk ? NULL : clk->core->name;
+	return IS_ERR(clk) ? NULL : clk->core->name;
 }
 EXPORT_SYMBOL_GPL(__clk_get_name);
 
@@ -286,7 +286,7 @@ EXPORT_SYMBOL_GPL(clk_hw_get_name);
 
 struct clk_hw *__clk_get_hw(struct clk *clk)
 {
-	return !clk ? NULL : clk->core->hw;
+	return IS_ERR(clk) ? NULL : clk->core->hw;
 }
 EXPORT_SYMBOL_GPL(__clk_get_hw);
 
@@ -371,7 +371,7 @@ EXPORT_SYMBOL_GPL(clk_hw_get_parent_by_index);
 
 unsigned int __clk_get_enable_count(struct clk *clk)
 {
-	return !clk ? 0 : clk->core->enable_count;
+	return IS_ERR(clk) ? 0 : clk->core->enable_count;
 }
 
 static unsigned long clk_core_get_rate_nolock(struct clk_core *core)
@@ -411,7 +411,7 @@ static unsigned long __clk_get_accuracy(struct clk_core *core)
 
 unsigned long __clk_get_flags(struct clk *clk)
 {
-	return !clk ? 0 : clk->core->flags;
+	return IS_ERR(clk) ? 0 : clk->core->flags;
 }
 EXPORT_SYMBOL_GPL(__clk_get_flags);
 
@@ -433,7 +433,7 @@ bool clk_hw_is_enabled(const struct clk_hw *hw)
 
 bool __clk_is_enabled(struct clk *clk)
 {
-	if (!clk)
+	if (IS_ERR(clk))
 		return false;
 
 	return clk_core_is_enabled(clk->core);
@@ -661,7 +661,7 @@ int clk_prepare(struct clk *clk)
 {
 	int ret;
 
-	if (!clk)
+	if (IS_ERR(clk))
 		return 0;
 
 	clk_prepare_lock();
@@ -776,7 +776,7 @@ int clk_enable(struct clk *clk)
 	unsigned long flags;
 	int ret;
 
-	if (!clk)
+	if (IS_ERR(clk))
 		return 0;
 
 	flags = clk_enable_lock();
@@ -875,7 +875,7 @@ long clk_round_rate(struct clk *clk, unsigned long rate)
 	struct clk_rate_request req;
 	int ret;
 
-	if (!clk)
+	if (IS_ERR(clk))
 		return 0;
 
 	clk_prepare_lock();
@@ -982,7 +982,7 @@ static long clk_core_get_accuracy(struct clk_core *core)
  */
 long clk_get_accuracy(struct clk *clk)
 {
-	if (!clk)
+	if (IS_ERR(clk))
 		return 0;
 
 	return clk_core_get_accuracy(clk->core);
@@ -1060,7 +1060,7 @@ static unsigned long clk_core_get_rate(struct clk_core *core)
  */
 unsigned long clk_get_rate(struct clk *clk)
 {
-	if (!clk)
+	if (IS_ERR(clk))
 		return 0;
 
 	return clk_core_get_rate(clk->core);
@@ -1560,7 +1560,7 @@ int clk_set_rate(struct clk *clk, unsigned long rate)
 {
 	int ret;
 
-	if (!clk)
+	if (IS_ERR(clk))
 		return 0;
 
 	/* prevent racing with updates to the clock topology */
@@ -1586,7 +1586,7 @@ int clk_set_rate_range(struct clk *clk, unsigned long min, unsigned long max)
 {
 	int ret = 0;
 
-	if (!clk)
+	if (IS_ERR(clk))
 		return 0;
 
 	if (min > max) {
@@ -1619,7 +1619,7 @@ EXPORT_SYMBOL_GPL(clk_set_rate_range);
  */
 int clk_set_min_rate(struct clk *clk, unsigned long rate)
 {
-	if (!clk)
+	if (IS_ERR(clk))
 		return 0;
 
 	return clk_set_rate_range(clk, rate, clk->max_rate);
@@ -1635,7 +1635,7 @@ EXPORT_SYMBOL_GPL(clk_set_min_rate);
  */
 int clk_set_max_rate(struct clk *clk, unsigned long rate)
 {
-	if (!clk)
+	if (IS_ERR(clk))
 		return 0;
 
 	return clk_set_rate_range(clk, clk->min_rate, rate);
@@ -1652,7 +1652,7 @@ struct clk *clk_get_parent(struct clk *clk)
 {
 	struct clk *parent;
 
-	if (!clk)
+	if (IS_ERR(clk))
 		return NULL;
 
 	clk_prepare_lock();
@@ -1706,7 +1706,7 @@ bool clk_has_parent(struct clk *clk, struct clk *parent)
 	unsigned int i;
 
 	/* NULL clocks should be nops, so return success if either is NULL. */
-	if (!clk || !parent)
+	if (IS_ERR(clk) || IS_ERR(parent))
 		return true;
 
 	core = clk->core;
@@ -1806,7 +1806,7 @@ out:
  */
 int clk_set_parent(struct clk *clk, struct clk *parent)
 {
-	if (!clk)
+	if (IS_ERR(clk))
 		return 0;
 
 	return clk_core_set_parent(clk->core, parent ? parent->core : NULL);
@@ -1837,7 +1837,7 @@ int clk_set_phase(struct clk *clk, int degrees)
 {
 	int ret = -EINVAL;
 
-	if (!clk)
+	if (IS_ERR(clk))
 		return 0;
 
 	/* sanity check degrees */
@@ -1888,7 +1888,7 @@ static int clk_core_get_phase(struct clk_core *core)
  */
 int clk_get_phase(struct clk *clk)
 {
-	if (!clk)
+	if (IS_ERR(clk))
 		return 0;
 
 	return clk_core_get_phase(clk->core);
@@ -2428,7 +2428,7 @@ struct clk *__clk_create_clk(struct clk_hw *hw, const char *dev_id,
 		return (struct clk *) hw;
 
 	clk = kzalloc(sizeof(*clk), GFP_KERNEL);
-	if (!clk)
+	if (IS_ERR(clk))
 		return ERR_PTR(-ENOMEM);
 
 	clk->core = hw->core;
@@ -2623,7 +2623,7 @@ void clk_unregister(struct clk *clk)
 {
 	unsigned long flags;
 
-	if (!clk || WARN_ON_ONCE(IS_ERR(clk)))
+	if (IS_ERR(clk) || WARN_ON_ONCE(IS_ERR(clk)))
 		return;
 
 	clk_debug_unregister(clk->core);
@@ -2796,7 +2796,7 @@ EXPORT_SYMBOL_GPL(devm_clk_hw_unregister);
  */
 int __clk_get(struct clk *clk)
 {
-	struct clk_core *core = !clk ? NULL : clk->core;
+	struct clk_core *core = IS_ERR(clk) ? NULL : clk->core;
 
 	if (core) {
 		if (!try_module_get(core->owner))
@@ -2811,7 +2811,7 @@ void __clk_put(struct clk *clk)
 {
 	struct module *owner;
 
-	if (!clk || WARN_ON_ONCE(IS_ERR(clk)))
+	if (IS_ERR(clk) || WARN_ON_ONCE(IS_ERR(clk)))
 		return;
 
 	clk_prepare_lock();
@@ -2858,7 +2858,7 @@ int clk_notifier_register(struct clk *clk, struct notifier_block *nb)
 	struct clk_notifier *cn;
 	int ret = -ENOMEM;
 
-	if (!clk || !nb)
+	if (IS_ERR(clk) || !nb)
 		return -EINVAL;
 
 	clk_prepare_lock();
@@ -2907,7 +2907,7 @@ int clk_notifier_unregister(struct clk *clk, struct notifier_block *nb)
 	struct clk_notifier *cn = NULL;
 	int ret = -EINVAL;
 
-	if (!clk || !nb)
+	if (IS_ERR(clk) || !nb)
 		return -EINVAL;
 
 	clk_prepare_lock();
